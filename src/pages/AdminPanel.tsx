@@ -140,7 +140,8 @@ function AdminPlayers() {
     const { error } = await supabase.from('players').insert({
       username: form.username.trim(),
       minecraft_uuid: form.minecraft_uuid.trim(),
-      rating: form.rating
+      rating: form.rating,
+      unranked: false
     });
     if (error) setError(error.message);
     else {
@@ -244,9 +245,16 @@ function AdminPlayers() {
                   <>
                     <span className="text-lg">{p.username}</span>
                     <span className="text-mcgreen-400 text-sm">{p.rating} Rating</span>
+                    {p.unranked && <span className="tier-badge bg-deepslate-600 text-netherite-300">UNRANKED</span>}
                   </>
                 )}
                 <div className="ml-auto flex gap-2">
+                  <button
+                    onClick={() => handleUpdatePlayer(p.id, { unranked: !p.unranked })}
+                    className={`pixel-border px-3 py-1 text-sm ${p.unranked ? 'bg-mcgreen-700 hover:bg-mcgreen-600' : 'bg-deepslate-700 hover:bg-deepslate-600'}`}
+                  >
+                    {p.unranked ? 'Set Ranked' : 'Set Unranked'}
+                  </button>
                   <button
                     onClick={() => setEditingId(editingId === p.id ? null : p.id)}
                     className="pixel-border bg-deepslate-700 hover:bg-deepslate-600 px-3 py-1 text-sm"

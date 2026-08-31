@@ -6,6 +6,7 @@ import MinecraftHead from '../components/MinecraftHead';
 import TierBadge from '../components/TierBadge';
 import CategoryIcon from '../components/CategoryIcon';
 import { Spinner, ErrorState, EmptyState } from '../components/States';
+import { tierPoints } from '../lib/tiers';
 import type { CategoryRow, PlayerRow, PlayerTierRow, RankupHistoryRow, Tier } from '../types/database';
 
 interface CategoryTierInfo {
@@ -141,8 +142,10 @@ export default function PlayerProfile() {
         <MinecraftHead uuid={player.minecraft_uuid} size={96} />
         <h1 className="text-3xl mt-2">{player.username}</h1>
         <p className="text-netherite-400 text-lg">Minecraft PvP Player</p>
+        {player.unranked && <span className="tier-badge bg-deepslate-600 text-netherite-300">UNRANKED</span>}
         <p className="text-mcgreen-400 text-2xl font-pixel mt-1">{player.rating}</p>
         <p className="text-netherite-400 text-sm">Overall Rating</p>
+        <p className="text-mcgold-400 text-lg font-pixel">{player.unranked ? 0 : items.reduce((sum, it) => sum + (it.playerTier?.tier ? tierPoints(it.playerTier.tier) : 0), 0)} Points</p>
       </div>
 
       <div>
@@ -160,7 +163,7 @@ export default function PlayerProfile() {
                   <TierBadge tier={it.playerTier.tier} />
                 </div>
 
-                {!it.isMaxTier && (
+                {!it.isMaxTier && !player.unranked && (
                   <>
                     <div className="text-sm text-netherite-400">
                       Next Tier: <span className="text-mcblue-400">{nextTierLabel(it.playerTier.tier)}</span>
@@ -203,9 +206,11 @@ export default function PlayerProfile() {
                     {it.voteError && <p className="text-mcred-400 text-sm text-center">{it.voteError}</p>}
                   </>
                 )}
-                {it.isMaxTier && (
+                {player.unranked ? (
+                  <p className="text-netherite-400 text-sm text-center py-1">Voting is disabled for unranked players.</p>
+                ) : it.isMaxTier ? (
                   <p className="text-mcgold-400 text-sm text-center py-1">👑 Maximum tier reached</p>
-                )}
+                ) : null}
               </div>
             );
           })}

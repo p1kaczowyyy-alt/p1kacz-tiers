@@ -7,7 +7,14 @@ export default function Footer() {
         <div>
           <div className="font-pixel text-mcgold-400 text-sm mb-1">P1KACZ TIERS</div>
           <div className="text-netherite-400 text-sm">Minecraft PvP Rankings</div>
-          <div className="text-netherite-400 text-sm mt-2">© 2026 P1kacz</div>
+          <button
+            type="button"
+            onClick={() => window.open('https://www.youtube.com/watch?v=KSPxHniCtmw', '_blank', 'noopener,noreferrer')}
+            className="text-netherite-400 text-sm mt-2 hover:text-mcgold-400 transition-colors"
+            aria-label="2112"
+          >
+            © 2026 P1kacz · 2112
+          </button>
         </div>
         <div className="flex gap-6 text-lg flex-wrap">
           <Link to="/rankings" className="hover:text-mcgold-400">Rankings</Link>

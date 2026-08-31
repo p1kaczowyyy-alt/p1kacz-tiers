@@ -9,13 +9,17 @@ interface Props {
   uuid: string;
   tier: Tier;
   rating: number;
-  votes: number;
-  votesRequired: number;
+  unranked?: boolean;
 }
 
-const medal = (rank: number) => (rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : null);
+const rankClass = (rank: number) => {
+  if (rank === 1) return 'text-yellow-400';
+  if (rank === 2) return 'text-gray-300';
+  if (rank === 3) return 'text-amber-700';
+  return 'text-netherite-400';
+};
 
-export default function PlayerListRow({ rank, username, uuid, tier, rating, votes, votesRequired }: Props) {
+export default function PlayerListRow({ rank, username, uuid, tier, rating, unranked = false }: Props) {
   const isTop3 = rank <= 3;
 
   return (
@@ -25,14 +29,19 @@ export default function PlayerListRow({ rank, username, uuid, tier, rating, vote
       }`}
     >
       <div className="flex items-center gap-3 sm:w-16 shrink-0">
-        <span className="font-pixel text-sm text-netherite-400 w-8">{medal(rank) ?? `#${rank}`}</span>
+        <span className={`font-pixel text-sm w-8 ${rankClass(rank)}`}>#{rank}</span>
       </div>
 
       <div className="flex items-center gap-3 flex-1 min-w-0">
         <MinecraftHead uuid={uuid} size={40} />
         <div className="min-w-0">
-          <div className="text-xl truncate">{username}</div>
-          <div className="sm:hidden text-sm text-netherite-400">{rating} Rating</div>
+          <div className="text-xl truncate flex items-center gap-2">
+            {username}
+            {unranked && <span className="tier-badge bg-deepslate-600 text-netherite-300">UNRANKED</span>}
+          </div>
+          <div className="sm:hidden text-sm text-netherite-400">
+            {unranked ? 'Unranked' : `${rating} Rating`}
+          </div>
         </div>
       </div>
 
@@ -40,17 +49,12 @@ export default function PlayerListRow({ rank, username, uuid, tier, rating, vote
         <TierBadge tier={tier} />
       </div>
 
-      <div className="hidden sm:block w-28 text-center text-mcgreen-400">{rating} Rating</div>
-
-      <div className="hidden sm:block w-28 text-center text-mcblue-400">
-        {votes}/{votesRequired} Votes
+      <div className="hidden sm:block w-28 text-center text-mcgreen-400">
+        {unranked ? '—' : `${rating} Rating`}
       </div>
 
       <div className="flex sm:hidden items-center justify-between gap-3">
         <TierBadge tier={tier} />
-        <span className="text-mcblue-400 text-sm">
-          {votes}/{votesRequired} Votes
-        </span>
       </div>
 
       <Link

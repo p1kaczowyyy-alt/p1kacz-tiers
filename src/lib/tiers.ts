@@ -22,3 +22,21 @@ export function minecraftHeadUrl(uuid: string, size = 64): string {
   // aggressively than Crafatar, so skin changes show up faster.
   return `https://crafthead.net/avatar/${cleanUuid}/${size}`;
 }
+
+
+export const TIER_POINTS: Record<Tier, number> = {
+  LT5: 1,
+  HT5: 2,
+  LT4: 3,
+  HT4: 4,
+  LT3: 6,
+  HT3: 10,
+  LT2: 16,
+  HT2: 28,
+  LT1: 44,
+  HT1: 60
+};
+
+export function tierPoints(tier: Tier): number {
+  return TIER_POINTS[tier] ?? 0;
+}

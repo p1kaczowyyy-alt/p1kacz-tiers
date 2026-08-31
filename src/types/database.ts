@@ -28,6 +28,7 @@ export interface PlayerRow {
   username: string;
   minecraft_uuid: string;
   rating: number;
+  unranked: boolean;
   created_at: string;
 }
 
