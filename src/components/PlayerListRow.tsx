@@ -9,7 +9,6 @@ interface Props {
   uuid: string;
   tier: Tier;
   rating: number;
-  unranked?: boolean;
 }
 
 const rankClass = (rank: number) => {
@@ -19,7 +18,7 @@ const rankClass = (rank: number) => {
   return 'text-netherite-400';
 };
 
-export default function PlayerListRow({ rank, username, uuid, tier, rating, unranked = false }: Props) {
+export default function PlayerListRow({ rank, username, uuid, tier, rating }: Props) {
   const glow = rank === 1 ? 'border-mcgold-500/80 shadow-[0_0_18px_rgba(245,197,24,0.65)]' : rank === 2 ? 'border-gray-300/80 shadow-[0_0_18px_rgba(209,213,219,0.5)]' : rank === 3 ? 'border-amber-700/80 shadow-[0_0_18px_rgba(180,83,9,0.5)]' : 'border-enchant-500/60 shadow-glow';
 
   return (
@@ -37,10 +36,10 @@ export default function PlayerListRow({ rank, username, uuid, tier, rating, unra
         <div className="min-w-0">
           <div className="text-xl truncate flex items-center gap-2">
             {username}
-            {unranked && <span className="tier-badge bg-deepslate-600 text-netherite-300">UNRANKED</span>}
+
           </div>
           <div className="sm:hidden text-sm text-netherite-400">
-            {unranked ? 'Unranked' : `${rating} Rating`}
+            {`${rating} Rating`}
           </div>
         </div>
       </div>
@@ -50,7 +49,7 @@ export default function PlayerListRow({ rank, username, uuid, tier, rating, unra
       </div>
 
       <div className="hidden sm:block w-28 text-center text-mcgreen-400">
-        {unranked ? '—' : `${rating} Rating`}
+        {`${rating} Rating`}
       </div>
 
       <div className="flex sm:hidden items-center justify-between gap-3">
