@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
+import { useAuth } from '../context/AuthContext';
 import { NavLink, Routes, Route, Navigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { useCategories } from '../hooks/useCategories';
@@ -8,7 +9,7 @@ import CategoryIcon from '../components/CategoryIcon';
 import { Spinner, EmptyState, ErrorState } from '../components/States';
 import type { PlayerRow, PlayerTierRow, ProfileRow, RankupRequestRow, Tier } from '../types/database';
 
-const TIERS: Tier[] = ['HT1', 'LT1', 'HT2', 'LT2', 'HT3', 'LT3', 'HT4', 'LT4', 'HT5', 'LT5'];
+const TIERS: Tier[] = ['HT1', 'LT1', 'HT2', 'LT2', 'HT3', 'LT3', 'HT4', 'LT4', 'HT5', 'LT5', 'NOTIER'];
 
 const tabs = [
   { to: '', label: 'Dashboard' },
@@ -141,7 +142,6 @@ function AdminPlayers() {
       username: form.username.trim(),
       minecraft_uuid: form.minecraft_uuid.trim(),
       rating: form.rating,
-      unranked: false
     });
     if (error) setError(error.message);
     else {
@@ -245,16 +245,10 @@ function AdminPlayers() {
                   <>
                     <span className="text-lg">{p.username}</span>
                     <span className="text-mcgreen-400 text-sm">{p.rating} Rating</span>
-                    {p.unranked && <span className="tier-badge bg-deepslate-600 text-netherite-300">UNRANKED</span>}
+
                   </>
                 )}
                 <div className="ml-auto flex gap-2">
-                  <button
-                    onClick={() => handleUpdatePlayer(p.id, { unranked: !p.unranked })}
-                    className={`pixel-border px-3 py-1 text-sm ${p.unranked ? 'bg-mcgreen-700 hover:bg-mcgreen-600' : 'bg-deepslate-700 hover:bg-deepslate-600'}`}
-                  >
-                    {p.unranked ? 'Set Ranked' : 'Set Unranked'}
-                  </button>
                   <button
                     onClick={() => setEditingId(editingId === p.id ? null : p.id)}
                     className="pixel-border bg-deepslate-700 hover:bg-deepslate-600 px-3 py-1 text-sm"
@@ -385,15 +379,39 @@ function AdminRankups() {
 // ---------------------------------------------------------------------
 function AdminCategories() {
   const { categories, loading } = useCategories();
+  const { profile } = useAuth();
   const [error, setError] = useState<string | null>(null);
+  const [form, setForm] = useState({ name: '', slug: '', icon: '⚔️' });
+  const isOwner = Boolean(profile?.is_owner);
 
   const handleRename = async (id: string, name: string) => {
-    const { error } = await supabase.from('categories').update({ name }).eq('id', id);
+    const { error } = await supabase.from('categories').update({ name: name.trim() }).eq('id', id);
     if (error) setError(error.message);
   };
 
   const handleIconChange = async (id: string, icon: string) => {
-    const { error } = await supabase.from('categories').update({ icon }).eq('id', id);
+    const { error } = await supabase.from('categories').update({ icon: icon.trim() }).eq('id', id);
+    if (error) setError(error.message);
+  };
+
+  const handleAdd = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    if (!form.name.trim() || !form.slug.trim()) return;
+    const maxOrder = categories.reduce((m, c) => Math.max(m, c.sort_order), 0);
+    const { error } = await supabase.from('categories').insert({
+      name: form.name.trim(),
+      slug: form.slug.trim().toLowerCase().replace(/\\s+/g, '_'),
+      icon: form.icon.trim() || '⚔️',
+      sort_order: maxOrder + 1
+    });
+    if (error) setError(error.message);
+    else setForm({ name: '', slug: '', icon: '⚔️' });
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm('Usunąć ten tryb? Spowoduje to usunięcie tierów i historii związanej z tym trybem.')) return;
+    const { error } = await supabase.from('categories').delete().eq('id', id);
     if (error) setError(error.message);
   };
 
@@ -402,27 +420,41 @@ function AdminCategories() {
   return (
     <div className="flex flex-col gap-3">
       {error && <ErrorState message={error} />}
-      <p className="text-netherite-400 text-sm">
-        Kategorie są stałą listą 13 trybów PvP (Kit Bed został trwale usunięty i nie może zostać dodany ponownie).
-        Pole "Icon" przyjmuje emoji (np. ⚔️) albo link do obrazka (np. https://.../diamond_sword.png) — zostanie
-        automatycznie rozpoznany i wyświetlony jako ikonka Minecraft zamiast emoji.
-      </p>
+      <div className="stone-panel p-4">
+        <h2 className="font-pixel text-lg text-mcgold-400 mb-2">Modes</h2>
+        <p className="text-netherite-400 text-sm">
+          Nemosy zostało usunięte. Tryby mogą być dodawane lub usuwane wyłącznie przez właściciela strony.
+        </p>
+      </div>
+
+      {isOwner && (
+        <form onSubmit={handleAdd} className="stone-panel p-4 grid gap-3 sm:grid-cols-3">
+          <input required placeholder="Mode name" value={form.name}
+            onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
+            className="bg-deepslate-800 pixel-border px-2 py-2" />
+          <input required placeholder="Slug, np. sword" value={form.slug}
+            onChange={e => setForm(f => ({ ...f, slug: e.target.value }))}
+            className="bg-deepslate-800 pixel-border px-2 py-2" />
+          <input placeholder="Icon" value={form.icon}
+            onChange={e => setForm(f => ({ ...f, icon: e.target.value }))}
+            className="bg-deepslate-800 pixel-border px-2 py-2" />
+          <button className="pixel-border bg-mcgreen-600 hover:bg-mcgreen-500 py-2 sm:col-span-3">+ ADD MODE</button>
+        </form>
+      )}
+
       <div className="grid gap-2 sm:grid-cols-2">
-        {categories.map((c) => (
+        {categories.map(c => (
           <div key={c.id} className="stone-panel p-3 flex items-center gap-3">
             <CategoryIcon icon={c.icon} size={28} />
-            <input
-              defaultValue={c.name}
-              onBlur={(e) => handleRename(c.id, e.target.value)}
-              className="bg-deepslate-800 pixel-border px-2 py-1 flex-1"
-              placeholder="Nazwa"
-            />
-            <input
-              defaultValue={c.icon}
-              onBlur={(e) => handleIconChange(c.id, e.target.value)}
-              className="bg-deepslate-800 pixel-border px-2 py-1 w-40 text-sm"
-              placeholder="⚔️ lub URL obrazka"
-            />
+            <input defaultValue={c.name} onBlur={e => handleRename(c.id, e.target.value)}
+              className="bg-deepslate-800 pixel-border px-2 py-1 flex-1" />
+            <input defaultValue={c.icon} onBlur={e => handleIconChange(c.id, e.target.value)}
+              className="bg-deepslate-800 pixel-border px-2 py-1 w-24 text-sm" />
+            {isOwner && (
+              <button onClick={() => handleDelete(c.id)} className="pixel-border bg-mcred-600 hover:bg-mcred-500 px-2 py-1 text-sm">
+                DELETE
+              </button>
+            )}
           </div>
         ))}
       </div>
@@ -430,6 +462,7 @@ function AdminCategories() {
   );
 }
 
+// ---------------------------------------------------------------------
 // ---------------------------------------------------------------------
 function AdminUsers() {
   const [users, setUsers] = useState<ProfileRow[]>([]);
