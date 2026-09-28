@@ -20,12 +20,12 @@ const rankClass = (rank: number) => {
 };
 
 export default function PlayerListRow({ rank, username, uuid, tier, rating, unranked = false }: Props) {
-  const isTop3 = rank <= 3;
+  const glow = rank === 1 ? 'border-mcgold-500/80 shadow-[0_0_18px_rgba(245,197,24,0.65)]' : rank === 2 ? 'border-gray-300/80 shadow-[0_0_18px_rgba(209,213,219,0.5)]' : rank === 3 ? 'border-amber-700/80 shadow-[0_0_18px_rgba(180,83,9,0.5)]' : 'border-enchant-500/60 shadow-glow';
 
   return (
     <div
       className={`stone-panel flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 px-4 py-3 w-full transition-transform hover:translate-x-1 ${
-        isTop3 ? 'border-mcgold-500/60 shadow-glow' : ''
+        ${glow}
       }`}
     >
       <div className="flex items-center gap-3 sm:w-16 shrink-0">
