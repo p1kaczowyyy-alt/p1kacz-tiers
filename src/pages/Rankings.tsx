@@ -29,7 +29,7 @@ interface OverallRow {
 type SortKey = 'rating' | 'tier' | 'rankups' | 'username';
 
 const TIER_RANK: Record<Tier, number> = {
-  HT1: 1, LT1: 2, HT2: 3, LT2: 4, HT3: 5, LT3: 6, HT4: 7, LT4: 8, HT5: 9, LT5: 10, NOTIER: 99
+  HT1: 1, MT1: 2, LT1: 3, HT2: 4, MT2: 5, LT2: 6, HT3: 7, MT3: 8, LT3: 9, HT4: 10, MT4: 11, LT4: 12, HT5: 13, MT5: 14, LT5: 15, NOTIER: 99
 };
 
 const rankClass = (rank: number) => {
@@ -222,7 +222,7 @@ export default function Rankings() {
     });
   }, [overallRows, search, tierFilter]);
 
-  const tiers: Tier[] = ['HT1', 'LT1', 'HT2', 'LT2', 'HT3', 'LT3', 'HT4', 'LT4', 'HT5', 'LT5', 'NOTIER'];
+  const tiers: Tier[] = ['HT1', 'MT1', 'LT1', 'HT2', 'MT2', 'LT2', 'HT3', 'MT3', 'LT3', 'HT4', 'MT4', 'LT4', 'HT5', 'MT5', 'LT5', 'NOTIER'];
 
   return (
     <div className="flex flex-col gap-6">
