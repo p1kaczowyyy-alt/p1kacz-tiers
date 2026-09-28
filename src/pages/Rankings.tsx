@@ -54,7 +54,7 @@ function OverallPlayerRow({
     <div
       className={`stone-panel flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 px-4 py-3 w-full transition-transform hover:translate-x-1 ${
         ${glow}
-      }`} 
+      }`}
     >
       <span className={`font-pixel text-sm w-8 shrink-0 ${rankClass(rank)}`}>#{rank}</span>
 
