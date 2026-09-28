@@ -3,7 +3,7 @@
 Prawdziwa aplikacja webowa: React + TypeScript + Tailwind CSS na froncie,
 Supabase (PostgreSQL + Auth + Row Level Security) jako backend.
 
-Zawiera: rankingi 13 kategorii PvP, tiery HT1–LT5, system głosowania na
+Zawiera: rankingi dynamiczne kategorie PvP, tiery HT1–MT1–LT1 przez HT5–MT5–LT5 oraz status NOTIER per tryb, system głosowania na
 rankupy z zabezpieczeniem przed podwójnym głosem, panel administratora
 (gracze, rankupy, kategorie, użytkownicy), statystyki, profile graczy,
 logowanie (email/hasło + opcjonalnie Discord OAuth).
@@ -118,7 +118,7 @@ routing React Router działał poprawnie na Cloudflare Pages (SPA fallback).
 
 Po zalogowaniu jako admin: **Admin Panel → Players → + ADD PLAYER**.
 Podaj Minecraft username, Minecraft UUID (np. z https://mcuuid.net) i
-rating początkowy. Gracz automatycznie dostaje wszystkie 13 kategorii
+rating początkowy. Gracz automatycznie dostaje wszystkie aktywne kategorie
 ustawione na `LT5`. Tiery każdej kategorii zmienisz w tym samym panelu.
 
 ## Struktura projektu
@@ -147,3 +147,26 @@ supabase/
   `votes` fizycznie uniemożliwia podwójne głosowanie na poziomie bazy danych.
 - Nigdy nie umieszczaj `service_role` key we froncie — używany jest wyłącznie
   klucz `anon public`, zgodnie z założeniami RLS.
+
+
+## Aktualizacja systemu tierów
+
+System obsługuje teraz trzy poziomy w każdej klasie: **HT → MT → LT**. Kolejność rankupów to np. LT5 → MT5 → HT5 → LT4 → MT4 → HT4 itd.
+
+Punkty Overall: LT5 1 / MT5 2 / HT5 3; LT4 4 / MT4 5 / HT4 7; LT3 9 / MT3 12 / HT3 15; LT2 20 / MT2 25 / HT2 30; LT1 40 / MT1 48 / HT1 60; NOTIER 0.
+
+`NOTIER` jest ustawiany osobno dla każdego trybu, więc gracz może mieć np. Sword LT2 i Crystal NOTIER.
+
+### Tryby
+
+Nemosy zostało usunięte. W panelu `Admin → Categories` właściciel strony może dodawać i usuwać tryby. Zwykły admin może edytować nazwę i ikonę istniejącego trybu, ale nie może go dodać ani usunąć.
+
+Aby oznaczyć konto jako właściciela, po pierwszym zalogowaniu uruchom w Supabase SQL Editor:
+
+```sql
+update public.profiles
+set is_owner = true
+where username = 'TwojUsername';
+```
+
+Po wykonaniu migracji odśwież stronę.
