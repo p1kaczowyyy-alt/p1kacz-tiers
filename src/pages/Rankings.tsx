@@ -154,7 +154,7 @@ export default function Rankings() {
 
       const { data, error } = await supabase
         .from('player_tiers')
-        .select('tier, votes_count, votes_required, players(id, username, minecraft_uuid, rating, unranked)')
+        .select('tier, votes_count, votes_required, players(id, username, minecraft_uuid, rating)')
         .eq('category_id', activeCategory);
 
       if (!active) return;
@@ -316,7 +316,6 @@ export default function Rankings() {
               uuid={r.minecraft_uuid}
               tier={r.tier}
               rating={r.rating}
-              unranked={r.unranked}
             />
           ))}
         </div>
