@@ -1,4 +1,4 @@
-export type Tier = 'HT1' | 'LT1' | 'HT2' | 'LT2' | 'HT3' | 'LT3' | 'HT4' | 'LT4' | 'HT5' | 'LT5';
+export type Tier = 'HT1' | 'LT1' | 'HT2' | 'LT2' | 'HT3' | 'LT3' | 'HT4' | 'LT4' | 'HT5' | 'LT5' | 'NOTIER';
 
 export type CategorySlug =
   | 'sword'
@@ -10,7 +10,6 @@ export type CategorySlug =
   | 'spear_mace'
   | 'gildie'
   | 'totemy'
-  | 'nemosy'
   | 'carty'
   | 'creeper'
   | 'dsmp';
@@ -82,6 +81,7 @@ export interface ProfileRow {
   id: string;
   username: string;
   role: AppRole;
+  is_owner: boolean;
   needs_username_setup: boolean;
   created_at: string;
 }
