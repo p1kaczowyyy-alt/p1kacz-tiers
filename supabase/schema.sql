@@ -367,8 +367,8 @@ create policy "categories are publicly readable"
   on public.categories for select using (true);
 create policy "owner manages categories"
   on public.categories for insert with check (exists (select 1 from public.profiles p where p.id = auth.uid() and p.is_owner));
-create policy "owner updates categories"
-  on public.categories for update using (exists (select 1 from public.profiles p where p.id = auth.uid() and p.is_owner));
+create policy "admins update categories"
+  on public.categories for update using (public.is_admin());
 create policy "owner deletes categories"
   on public.categories for delete using (exists (select 1 from public.profiles p where p.id = auth.uid() and p.is_owner));
 
@@ -456,8 +456,7 @@ drop policy if exists "owner updates categories" on public.categories;
 drop policy if exists "owner deletes categories" on public.categories;
 create policy "owner manages categories" on public.categories for insert
   with check (exists (select 1 from public.profiles p where p.id=auth.uid() and p.is_owner=true));
-create policy "owner updates categories" on public.categories for update
-  using (exists (select 1 from public.profiles p where p.id=auth.uid() and p.is_owner=true))
-  with check (exists (select 1 from public.profiles p where p.id=auth.uid() and p.is_owner=true));
+create policy "admins update categories" on public.categories for update
+  using (public.is_admin()) with check (public.is_admin());
 create policy "owner deletes categories" on public.categories for delete
   using (exists (select 1 from public.profiles p where p.id=auth.uid() and p.is_owner=true));
