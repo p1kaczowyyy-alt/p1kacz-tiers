@@ -9,7 +9,7 @@ create extension if not exists "pgcrypto";
 -- ENUM TYPES
 -- ---------------------------------------------------------------------
 create type public.app_role as enum ('user', 'admin');
-create type public.tier_enum as enum ('HT1','LT1','HT2','LT2','HT3','LT3','HT4','LT4','HT5','LT5');
+create type public.tier_enum as enum ('HT1','LT1','HT2','LT2','HT3','LT3','HT4','LT4','HT5','LT5','NOTIER');
 create type public.rankup_status as enum ('pending', 'approved', 'rejected');
 
 -- ---------------------------------------------------------------------
@@ -19,6 +19,7 @@ create table public.profiles (
   id uuid primary key references auth.users(id) on delete cascade,
   username text not null unique,
   role public.app_role not null default 'user',
+  is_owner boolean not null default false,
   created_at timestamptz not null default now()
 );
 
@@ -65,10 +66,9 @@ insert into public.categories (slug, name, icon, sort_order) values
   ('spear_mace',  'Spear Mace',  '⚔️', 7),
   ('gildie',      'Gildie',      '🛡️', 8),
   ('totemy',      'Totemy',      '🔱', 9),
-  ('nemosy',      'Nemosy',      '🐟', 10),
-  ('carty',       'Carty',       '🛒', 11),
+    ('carty',       'Carty',       '🛒', 11),
   ('creeper',     'Creeper',     '💥', 12),
-  ('dsmp',        'DSMP',        '🌑', 13);
+  ('dsmp',        'DSMP',        '🌑', 12);
 
 -- ---------------------------------------------------------------------
 -- PLAYERS
@@ -183,6 +183,7 @@ language sql
 immutable
 as $$
   select (case t
+    when 'NOTIER' then 'NOTIER'
     when 'LT5' then 'HT5'
     when 'HT5' then 'LT4'
     when 'LT4' then 'HT4'
@@ -221,7 +222,7 @@ begin
     raise exception 'PLAYER_TIER_NOT_FOUND';
   end if;
 
-  if v_pt.tier = 'HT1' then
+  if v_pt.tier in ('HT1', 'NOTIER') then
     raise exception 'ALREADY_MAX_TIER';
   end if;
 
@@ -364,12 +365,12 @@ create policy "admins manage all profiles"
 -- CATEGORIES — public read, admin write
 create policy "categories are publicly readable"
   on public.categories for select using (true);
-create policy "admins manage categories"
-  on public.categories for insert with check (public.is_admin());
-create policy "admins update categories"
-  on public.categories for update using (public.is_admin());
-create policy "admins delete categories"
-  on public.categories for delete using (public.is_admin());
+create policy "owner manages categories"
+  on public.categories for insert with check (exists (select 1 from public.profiles p where p.id = auth.uid() and p.is_owner));
+create policy "owner updates categories"
+  on public.categories for update using (exists (select 1 from public.profiles p where p.id = auth.uid() and p.is_owner));
+create policy "owner deletes categories"
+  on public.categories for delete using (exists (select 1 from public.profiles p where p.id = auth.uid() and p.is_owner));
 
 -- PLAYERS — public read, admin write
 create policy "players are publicly readable"
@@ -431,3 +432,32 @@ grant execute on function public.next_tier(public.tier_enum) to authenticated, a
 -- Make yourself an admin after signing up once, by running:
 --   update public.profiles set role = 'admin' where username = 'YourUsername';
 -- =====================================================================
+
+
+-- P1KACZ TIERS v2 migration:
+-- Run this block on an EXISTING database after the original schema.
+-- It removes Nemosy, adds NOTIER per category, and introduces owner-only mode management.
+alter table public.profiles add column if not exists is_owner boolean not null default false;
+
+do $$ begin
+  if not exists (select 1 from pg_enum e join pg_type t on t.oid=e.enumtypid where t.typname='tier_enum' and e.enumlabel='NOTIER') then
+    alter type public.tier_enum add value 'NOTIER';
+  end if;
+end $$;
+
+delete from public.categories where slug = 'nemosy';
+
+-- Owner-only category management is enforced by RLS, not just the UI.
+drop policy if exists "admins manage categories" on public.categories;
+drop policy if exists "admins update categories" on public.categories;
+drop policy if exists "admins delete categories" on public.categories;
+drop policy if exists "owner manages categories" on public.categories;
+drop policy if exists "owner updates categories" on public.categories;
+drop policy if exists "owner deletes categories" on public.categories;
+create policy "owner manages categories" on public.categories for insert
+  with check (exists (select 1 from public.profiles p where p.id=auth.uid() and p.is_owner=true));
+create policy "owner updates categories" on public.categories for update
+  using (exists (select 1 from public.profiles p where p.id=auth.uid() and p.is_owner=true))
+  with check (exists (select 1 from public.profiles p where p.id=auth.uid() and p.is_owner=true));
+create policy "owner deletes categories" on public.categories for delete
+  using (exists (select 1 from public.profiles p where p.id=auth.uid() and p.is_owner=true));
