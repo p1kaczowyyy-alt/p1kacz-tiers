@@ -9,7 +9,7 @@ import CategoryIcon from '../components/CategoryIcon';
 import { Spinner, EmptyState, ErrorState } from '../components/States';
 import type { PlayerRow, PlayerTierRow, ProfileRow, RankupRequestRow, Tier } from '../types/database';
 
-const TIERS: Tier[] = ['HT1', 'LT1', 'HT2', 'LT2', 'HT3', 'LT3', 'HT4', 'LT4', 'HT5', 'LT5', 'NOTIER'];
+const TIERS: Tier[] = ['HT1', 'MT1', 'LT1', 'HT2', 'MT2', 'LT2', 'HT3', 'MT3', 'LT3', 'HT4', 'MT4', 'LT4', 'HT5', 'MT5', 'LT5', 'NOTIER'];
 
 const tabs = [
   { to: '', label: 'Dashboard' },
