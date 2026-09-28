@@ -30,7 +30,7 @@ interface OverallRow {
 type SortKey = 'rating' | 'tier' | 'rankups' | 'username';
 
 const TIER_RANK: Record<Tier, number> = {
-  HT1: 1, LT1: 2, HT2: 3, LT2: 4, HT3: 5, LT3: 6, HT4: 7, LT4: 8, HT5: 9, LT5: 10
+  HT1: 1, LT1: 2, HT2: 3, LT2: 4, HT3: 5, LT3: 6, HT4: 7, LT4: 8, HT5: 9, LT5: 10, NOTIER: 99
 };
 
 const rankClass = (rank: number) => {
@@ -49,13 +49,13 @@ function OverallPlayerRow({
   row: OverallRow;
   categories: CategoryRow[];
 }) {
-  const isTop3 = rank <= 3;
+  const glow = rank === 1 ? 'border-mcgold-500/80 shadow-[0_0_18px_rgba(245,197,24,0.65)]' : rank === 2 ? 'border-gray-300/80 shadow-[0_0_18px_rgba(209,213,219,0.5)]' : rank === 3 ? 'border-amber-700/80 shadow-[0_0_18px_rgba(180,83,9,0.5)]' : 'border-enchant-500/60 shadow-glow';
 
   return (
     <div
       className={`stone-panel flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 px-4 py-3 w-full transition-transform hover:translate-x-1 ${
-        isTop3 ? 'border-mcgold-500/60 shadow-glow' : ''
-      }`}
+        ${glow}
+      }`} 
     >
       <span className={`font-pixel text-sm w-8 shrink-0 ${rankClass(rank)}`}>#{rank}</span>
 
@@ -109,7 +109,7 @@ export default function Rankings() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState('');
-  const [sortKey, setSortKey] = useState<SortKey>('rating');
+  const [sortKey, setSortKey] = useState<SortKey>('tier');
   const [tierFilter, setTierFilter] = useState<Tier | 'ALL'>('ALL');
 
   useEffect(() => {
@@ -230,12 +230,12 @@ export default function Rankings() {
     });
   }, [overallRows, search, tierFilter]);
 
-  const tiers: Tier[] = ['HT1', 'LT1', 'HT2', 'LT2', 'HT3', 'LT3', 'HT4', 'LT4', 'HT5', 'LT5'];
+  const tiers: Tier[] = ['HT1', 'LT1', 'HT2', 'LT2', 'HT3', 'LT3', 'HT4', 'LT4', 'HT5', 'LT5', 'NOTIER'];
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="text-center py-4">
-        <h1 className="font-pixel text-2xl md:text-3xl text-mcgold-400 mb-2">P1KACZ TIERS</h1>
+      <div className="text-center py-8 rankings-hero">
+        <h1 className="font-pixel text-3xl md:text-5xl text-transparent bg-clip-text bg-gradient-to-r from-enchant-400 via-purple-300 to-mcgold-400 mb-3 drop-shadow-[0_0_18px_rgba(138,43,226,0.55)]">P1KACZ TIERS</h1>
         <p className="text-netherite-400 text-xl">Minecraft PvP Rankings</p>
       </div>
 
@@ -244,7 +244,7 @@ export default function Rankings() {
       ) : (
         <div className="flex gap-2 overflow-x-auto pb-2">
           <button
-            onClick={() => setActiveCategory('overall')}
+            onClick={() => { setActiveCategory('overall'); setSortKey('tier'); }}
             className={`pixel-border px-4 py-2 whitespace-nowrap text-sm shrink-0 ${
               activeCategory === 'overall' ? 'bg-enchant-600 animate-enchant' : 'bg-deepslate-800 hover:bg-deepslate-700'
             }`}
@@ -254,7 +254,7 @@ export default function Rankings() {
           {categories.map((c) => (
             <button
               key={c.id}
-              onClick={() => setActiveCategory(c.id)}
+              onClick={() => { setActiveCategory(c.id); setSortKey('tier'); }}
               className={`pixel-border px-4 py-2 whitespace-nowrap text-sm shrink-0 ${
                 activeCategory === c.id ? 'bg-enchant-600 animate-enchant' : 'bg-deepslate-800 hover:bg-deepslate-700'
               }`}
@@ -306,7 +306,7 @@ export default function Rankings() {
         filteredOverall.length === 0 ? (
           <EmptyState message="No players found." />
         ) : (
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-2 rankings-table-enter">
             {filteredOverall.map((r, i) => (
               <OverallPlayerRow key={r.player.id} rank={i + 1} row={r} categories={categories} />
             ))}
@@ -315,7 +315,7 @@ export default function Rankings() {
       ) : filteredSorted.length === 0 ? (
         <EmptyState message="No players found." />
       ) : (
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col gap-2 rankings-table-enter">
           {filteredSorted.map((r, i) => (
             <PlayerListRow
               key={r.player_id}
