@@ -23,9 +23,7 @@ export default function PlayerListRow({ rank, username, uuid, tier, rating }: Pr
 
   return (
     <div
-      className={`stone-panel flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 px-4 py-3 w-full transition-transform hover:translate-x-1 ${
-        ${glow}
-      }`}
+      className={`stone-panel flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 px-4 py-3 w-full transition-transform hover:translate-x-1 ${glow}`}
     >
       <div className="flex items-center gap-3 sm:w-16 shrink-0">
         <span className={`font-pixel text-sm w-8 ${rankClass(rank)}`}>#{rank}</span>
