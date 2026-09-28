@@ -244,7 +244,7 @@ export default function PlayerProfile() {
 }
 
 function nextTierLabel(tier: Tier): Tier {
-  const order: Tier[] = ['HT1', 'LT1', 'HT2', 'LT2', 'HT3', 'LT3', 'HT4', 'LT4', 'HT5', 'LT5'];
+  const order: Tier[] = ['HT1', 'MT1', 'LT1', 'HT2', 'MT2', 'LT2', 'HT3', 'MT3', 'LT3', 'HT4', 'MT4', 'LT4', 'HT5', 'MT5', 'LT5'];
   const idx = order.indexOf(tier);
   return idx > 0 ? order[idx - 1] : tier;
 }
