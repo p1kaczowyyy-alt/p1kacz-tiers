@@ -470,3 +470,24 @@ create policy "admins update categories" on public.categories for update
   using (public.is_admin()) with check (public.is_admin());
 create policy "owner deletes categories" on public.categories for delete
   using (exists (select 1 from public.profiles p where p.id=auth.uid() and p.is_owner=true));
+
+
+-- When the owner adds a new mode, seed NOTIER/LT5 rows for existing players too.
+create or replace function public.seed_category_tiers()
+returns trigger
+language plpgsql
+security definer set search_path = public
+as $$
+begin
+  insert into public.player_tiers (player_id, category_id, tier, votes_count, votes_required)
+  select p.id, new.id, 'LT5', 0, 20
+  from public.players p
+  on conflict (player_id, category_id) do nothing;
+  return new;
+end;
+$$;
+
+drop trigger if exists on_category_created on public.categories;
+create trigger on_category_created
+  after insert on public.categories
+  for each row execute function public.seed_category_tiers();
