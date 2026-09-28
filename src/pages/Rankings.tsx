@@ -18,7 +18,6 @@ interface RankingRow {
   tier: Tier;
   votes_count: number;
   votes_required: number;
-  unranked: boolean;
 }
 
 interface OverallRow {
@@ -64,12 +63,10 @@ function OverallPlayerRow({
         <div className="min-w-0">
           <div className="text-xl truncate flex items-center gap-2">
             {row.player.username}
-            {row.player.unranked && (
-              <span className="tier-badge bg-deepslate-600 text-netherite-300">UNRANKED</span>
-            )}
+
           </div>
           <div className="text-sm text-netherite-400">
-            {row.player.unranked ? 'Unranked' : `${row.points} Points`}
+            {`${row.points} Points`}
           </div>
         </div>
       </div>
@@ -88,7 +85,7 @@ function OverallPlayerRow({
       </div>
 
       <div className="sm:w-24 text-left sm:text-right font-pixel text-mcgold-400 shrink-0">
-        {row.player.unranked ? '0' : row.points} pts
+        {row.points} pts
       </div>
 
       <Link
@@ -145,9 +142,7 @@ export default function Rankings() {
 
         const mapped = ((playersData ?? []) as PlayerRow[]).map((player) => {
           const tiers = tiersByPlayer.get(player.id) ?? new Map<string, Tier>();
-          const points = player.unranked
-            ? 0
-            : Array.from(tiers.values()).reduce((sum, tier) => sum + tierPoints(tier), 0);
+          const points = Array.from(tiers.values()).reduce((sum, tier) => sum + tierPoints(tier), 0);
           return { player, tiers, points };
         });
 
@@ -177,7 +172,6 @@ export default function Rankings() {
             tier: r.tier,
             votes_count: r.votes_count,
             votes_required: r.votes_required,
-            unranked: Boolean(r.players.unranked)
           }));
         setRows(mapped);
       }
@@ -198,7 +192,6 @@ export default function Rankings() {
     if (tierFilter !== 'ALL') result = result.filter((r) => r.tier === tierFilter);
 
     return [...result].sort((a, b) => {
-      if (a.unranked !== b.unranked) return a.unranked ? 1 : -1;
       switch (sortKey) {
         case 'rating':
           return b.rating - a.rating;
@@ -224,7 +217,6 @@ export default function Rankings() {
       result = result.filter((r) => Array.from(r.tiers.values()).includes(tierFilter));
     }
     return [...result].sort((a, b) => {
-      if (a.player.unranked !== b.player.unranked) return a.player.unranked ? 1 : -1;
       if (b.points !== a.points) return b.points - a.points;
       return a.player.username.localeCompare(b.player.username);
     });
