@@ -9,7 +9,7 @@ create extension if not exists "pgcrypto";
 -- ENUM TYPES
 -- ---------------------------------------------------------------------
 create type public.app_role as enum ('user', 'admin');
-create type public.tier_enum as enum ('HT1','LT1','HT2','LT2','HT3','LT3','HT4','LT4','HT5','LT5','NOTIER');
+create type public.tier_enum as enum ('HT1','MT1','LT1','HT2','MT2','LT2','HT3','MT3','LT3','HT4','MT4','LT4','HT5','MT5','LT5','NOTIER');
 create type public.rankup_status as enum ('pending', 'approved', 'rejected');
 
 -- ---------------------------------------------------------------------
@@ -184,15 +184,20 @@ immutable
 as $$
   select (case t
     when 'NOTIER' then 'NOTIER'
-    when 'LT5' then 'HT5'
+    when 'LT5' then 'MT5'
+    when 'MT5' then 'HT5'
     when 'HT5' then 'LT4'
-    when 'LT4' then 'HT4'
+    when 'LT4' then 'MT4'
+    when 'MT4' then 'HT4'
     when 'HT4' then 'LT3'
-    when 'LT3' then 'HT3'
+    when 'LT3' then 'MT3'
+    when 'MT3' then 'HT3'
     when 'HT3' then 'LT2'
-    when 'LT2' then 'HT2'
+    when 'LT2' then 'MT2'
+    when 'MT2' then 'HT2'
     when 'HT2' then 'LT1'
-    when 'LT1' then 'HT1'
+    when 'LT1' then 'MT1'
+    when 'MT1' then 'HT1'
     else 'HT1' -- HT1 is already max
   end)::public.tier_enum;
 $$;
@@ -440,6 +445,11 @@ grant execute on function public.next_tier(public.tier_enum) to authenticated, a
 alter table public.profiles add column if not exists is_owner boolean not null default false;
 
 do $$ begin
+  if not exists (select 1 from pg_enum e join pg_type t on t.oid=e.enumtypid where t.typname='tier_enum' and e.enumlabel='MT1') then alter type public.tier_enum add value 'MT1'; end if;
+  if not exists (select 1 from pg_enum e join pg_type t on t.oid=e.enumtypid where t.typname='tier_enum' and e.enumlabel='MT2') then alter type public.tier_enum add value 'MT2'; end if;
+  if not exists (select 1 from pg_enum e join pg_type t on t.oid=e.enumtypid where t.typname='tier_enum' and e.enumlabel='MT3') then alter type public.tier_enum add value 'MT3'; end if;
+  if not exists (select 1 from pg_enum e join pg_type t on t.oid=e.enumtypid where t.typname='tier_enum' and e.enumlabel='MT4') then alter type public.tier_enum add value 'MT4'; end if;
+  if not exists (select 1 from pg_enum e join pg_type t on t.oid=e.enumtypid where t.typname='tier_enum' and e.enumlabel='MT5') then alter type public.tier_enum add value 'MT5'; end if;
   if not exists (select 1 from pg_enum e join pg_type t on t.oid=e.enumtypid where t.typname='tier_enum' and e.enumlabel='NOTIER') then
     alter type public.tier_enum add value 'NOTIER';
   end if;
